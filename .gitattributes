@@ -1,0 +1,12 @@
+# EOL normalization for all files detected as text (ie. eol=lf)
+* text=auto eol=lf
+
+# Unix files
+*.sh          text
+
+# Python
+*.py          text
+
+# Misc
+*.md          text
+*.yml         text
