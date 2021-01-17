@@ -78,6 +78,18 @@ To create a default match just create a rule with no "match" element. This will 
       class_instance: "chromium"
     command: "g815-led -a a4a4a4"
 
+  - name: Guake in ~/Projects
+    match:
+      application: "guake"
+      name: "*: ~/Projects"
+    command: "g815-led -a a4a4a4"
+
+  - name: Guake in HOME
+    match:
+      application: "guake"
+      name: "*: ~"
+    command: "g815-led -a a4a4a4"
+
   - name: Default
     command: "g815-led -a a4a4a4"
 ```
