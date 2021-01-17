@@ -1,0 +1,30 @@
+---
+  # All config elements present
+  - name: All elements present
+    match:
+      application: "Sublime Text"
+      name: "*"
+      class_group: "Sublime_text"
+      class_instance: "sublime_text"
+      icon: "*"
+    command: "g815-led -a a4a4a4"
+    continue: false
+    skippable: true
+
+  # Rule that allows other rules to match even if this rule matches
+  - name: Continue if match
+    match:
+      application: "Sublime Text"
+    command: "g815-led -a a4a4a4"
+    continue: true
+
+  # Rule where command cannot be skipped even if it is the same as the previously executed command
+  - name: Unskippable command
+    match:
+      application: "not last"
+    command: "g815-led -a a4a4a4"
+    skippable: false
+
+  # Always match
+  - name: Default
+    command: "g815-led -a a4a4a4"
