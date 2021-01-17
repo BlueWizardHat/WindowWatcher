@@ -62,6 +62,8 @@ def execute_rules(attributes):
 				print("    command: " + str(command))
 				if rule["continue"]:
 					print("    continue: true")
+				if not rule["skippable"]:
+					print("    skippable: false")
 				os.system(command)
 				prev_command = command
 		else:
@@ -155,6 +157,7 @@ def load_config():
 				cont = rule["continue"] if "continue" in rule else False
 				printverbose("    continue: " + str(cont))
 				skippable = rule["skippable"] if "skippable" in rule else True
+				printverbose("    skippable: " + str(skippable))
 
 				rules.append({"name":name, "match":match, "command":command, "continue":cont, "skippable":skippable})
 		#print(str(rules))

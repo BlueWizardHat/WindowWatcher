@@ -1,7 +1,8 @@
 Window Watcher
 ================================================================
 
-Small script that can detect when the active window changes
+Small script that can detect when the active window changes and run a command when it happens.
+
 
 ## Configuration
 
@@ -94,4 +95,19 @@ To create a default match just create a rule with no "match" element. This will 
     command: "g815-led -a a4a4a4"
 ```
 
-For more samples see config.sample.yml
+For more examples see [config.sample.yml](https://github.com/BlueWizardHat/WindowWatcher/blob/master/config.sample.yml)
+
+
+## FAQ
+
+**Q: Why?**
+
+**A:** Because I have a fancy RGB keyboard and [g810-led](https://github.com/MatMoul/g810-led) only lets you change the colors, but does not contain a daemon to monitor window changes and I want to change the colors depending on which program has focus.
+
+**Q: Is this useful?**
+
+**A:** Probably not, but it was fun to do.
+
+**Q: Are there any planned features?**
+
+**A:** I'd like to also react when the screensaver is activated/deactivated.
