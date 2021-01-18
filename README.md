@@ -108,6 +108,28 @@ For more examples see [config.sample.yml](https://github.com/BlueWizardHat/Windo
 
 **A:** Probably not, but it was fun to do.
 
-**Q: Are there any planned features?**
 
-**A:** I'd like to also react when the screensaver is activated/deactivated.
+## Screensavers
+
+No window event seems to be emitted when the screensaver is activated or when it is deactivated. However it is possible to watch
+for screensaver activation using an external script that listens on dbus-events. On screensaver activation run whatever command you want in that script and on deactivation you can run windowwatcher.py --once.
+
+The following example listens on the xfce screensaver, on activation it stops spotify playing and makes a g810 keyboard lights use
+the breathe effect. On screensaver deactivation it runs "windowwatcher.py --once" to restore the command for the activated window.
+
+```bash
+#!/usr/bin/env bash
+
+spotify_stop="dbus-send --session --dest=org.mpris.MediaPlayer2.spotify --type=method_call --print-reply --reply-timeout=1000 /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Stop"
+
+while read line; do
+	if [[ "$line" == "boolean true" ]]; then
+		echo "screensaver activated"
+		$spotify_stop > /dev/null 2>&1
+		g810-led -fx breathing all f4f4f4 10 > /dev/null 2>&1
+	elif [[ "$line" == "boolean false" ]]; then
+		echo "screensaver deactivated"
+		windowwatcher.py --once > /dev/null 2>&1
+	fi
+done < <(dbus-monitor --session "type='signal',interface='org.xfce.ScreenSaver',member='ActiveChanged'")
+```

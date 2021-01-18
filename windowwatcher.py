@@ -123,8 +123,13 @@ def do_window_name_changed(active_window: Wnck.Window):
 def window_active_init():
 	Gtk.init([])
 	screen: Wnck.Screen = Wnck.Screen.get_default()
-	screen.connect("active-window-changed", do_active_window_changed)
-	Gtk.main()
+
+	if args.once:
+		screen.force_update()
+		do_active_window_changed(screen, None)
+	else:
+		screen.connect("active-window-changed", do_active_window_changed)
+		Gtk.main()
 
 
 def load_config():
@@ -171,7 +176,9 @@ if __name__ == "__main__":
 	try:
 		parser = argparse.ArgumentParser()
 		parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+		parser.add_argument("-o", "--once", help="just take action based on the currently active window once", action="store_true")
 		parser.add_argument("-c", "--config", help="location of a config file", default="~/.config/windowwatcher/config.yml")
+
 		args = parser.parse_args()
 		if args.verbose:
 			print("Verbose")
