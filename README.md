@@ -65,7 +65,11 @@ To create a default match just create a rule with no "match" element. This will 
 ### Example configuration
 
 ```yaml
----
+#
+# Rules for window changed
+#
+
+window-changed:
   - name: Sublime Text
     match:
       application: "Sublime Text"
@@ -93,6 +97,15 @@ To create a default match just create a rule with no "match" element. This will 
 
   - name: Default
     command: "g815-led -a a4a4a4"
+
+
+#
+# Rules for window opened
+#
+
+window-opened:
+
+  - name: Default
 ```
 
 For more examples see [config.sample.yml](https://github.com/BlueWizardHat/WindowWatcher/blob/master/config.sample.yml)
@@ -133,3 +146,6 @@ while read line; do
 	fi
 done < <(dbus-monitor --session "type='signal',interface='org.xfce.ScreenSaver',member='ActiveChanged'")
 ```
+
+If you are using another window manager than Xfce you will just have to use dbus-monitor to figure out what interface to listen to,
+or ask Google.

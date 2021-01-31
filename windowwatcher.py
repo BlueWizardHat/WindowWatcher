@@ -47,10 +47,10 @@ def print_window_attributes(attributes):
 			print("      " + k + ": \"" + v + "\"")
 
 
-def execute_rules(attributes):
+def execute_rules(rules, attributes):
 	global prev_command
 
-	rules_to_execute = find_matching_rules(attributes)
+	rules_to_execute = find_matching_rules(rules, attributes)
 	for rule in rules_to_execute:
 		command = rule["command"] if "command" in rule else None
 		if not command is None:
@@ -70,7 +70,7 @@ def execute_rules(attributes):
 			print("  - no-cmd: " + rule["name"])
 
 
-def find_matching_rules(attributes):
+def find_matching_rules(rules, attributes):
 	printverbose("")
 	rules_to_execute = []
 	for rule in rules:
@@ -91,7 +91,7 @@ def all_match(rule, attributes):
 
 
 def do_active_window_changed(this_screen: Wnck.Screen, previously_active: Wnck.Window):
-	global name_change_hook, prev_active_window, prev_attributes
+	global name_change_hook, prev_active_window, prev_attributes, window_changed_rules
 
 	print ("\nactive-window-changed")
 	active_window: Wnck.Window = this_screen.get_active_window()
@@ -100,27 +100,37 @@ def do_active_window_changed(this_screen: Wnck.Screen, previously_active: Wnck.W
 		prev_active_window.disconnect(name_change_hook)
 	prev_active_window = active_window
 	prev_attributes = attributes
-	if (active_window is not None):
+	if active_window is not None:
 		name_change_hook = active_window.connect("name-changed", do_window_name_changed)
 		print_window_attributes(attributes)
-		execute_rules(attributes)
+		execute_rules(window_changed_rules, attributes)
 	else:
 		print("    window is None")
 
 
 def do_window_name_changed(active_window: Wnck.Window):
-	global prev_attributes
+	global prev_attributes, window_changed_rules
 
 	print("\nwindow: name-changed")
 	attributes = get_window_attributes(active_window)
 	print_window_attributes(attributes)
 	if (attributes != prev_attributes):
 		print("  window changed")
-		execute_rules(attributes)
+		execute_rules(window_changed_rules, attributes)
 	prev_attributes = attributes
 
 
+def do_window_opened(this_screen: Wnck.Screen, new_window: Wnck.Window):
+	global window_opened_rules
+	print ("\nwindow-opened")
+	attributes = get_window_attributes(new_window)
+	print_window_attributes(attributes)
+	execute_rules(window_opened_rules, attributes)
+
+
 def window_active_init():
+	global window_changed_rules, window_opened_rules
+
 	Gtk.init([])
 	screen: Wnck.Screen = Wnck.Screen.get_default()
 
@@ -128,48 +138,62 @@ def window_active_init():
 		screen.force_update()
 		do_active_window_changed(screen, None)
 	else:
-		screen.connect("active-window-changed", do_active_window_changed)
+		print("\n* Events:")
+		if window_changed_rules:
+			screen.connect("active-window-changed", do_active_window_changed)
+		if window_opened_rules:
+			screen.connect("window-opened", do_window_opened)
 		Gtk.main()
 
 
 def load_config():
-	global rules
-	rules = []
+	global window_changed_rules, window_opened_rules
 	try:
 		ruleNum = 0
 		full_path = os.path.expanduser(args.config)
 		print("Loading config file: " + full_path)
 		with open(full_path, "r") as file:
 			configfile = yaml.load(file, Loader=yaml.FullLoader)
-			for rule in configfile:
-				ruleNum = ruleNum + 1
-				name = rule["name"] if "name" in rule else "Rule " + str(ruleNum)
-				printverbose("\n  - name: " + name)
 
-				if ("match" in rule):
-					match = []
-					printverbose("    match:")
-					for k in ["application", "name", "class_group", "class_instance", "icon"]:
-						if k in rule["match"]:
-							match.append((k, rule["match"][k]))
-							printverbose("      " + k + ": " + rule["match"][k])
-						else:
-							match.append((k, None))
-				else:
-					match = None
-				command = rule["command"] if "command" in rule else None
-				printverbose("    command: " + str(command))
-				cont = rule["continue"] if "continue" in rule else False
-				printverbose("    continue: " + str(cont))
-				skippable = rule["skippable"] if "skippable" in rule else True
-				printverbose("    skippable: " + str(skippable))
+			printverbose("\nwindow-changed:")
+			window_changed_rules = parse_rules(configfile["window-changed"]) if "window-changed" in configfile else []
+			printverbose("\nwindow-opened:")
+			window_opened_rules = parse_rules(configfile["window-opened"]) if "window-opened" in configfile else []
 
-				rules.append({"name":name, "match":match, "command":command, "continue":cont, "skippable":skippable})
-		#print(str(rules))
-		printverbose("\nConfig file parsed")
+		printverbose("\n* Config file parsed\n\n")
 	except IOError:
 		print("IOError: Unable to read " + args.config)
 		sys.exit(1)
+
+
+def parse_rules(config_section):
+	rules = []
+	ruleNum = 0
+	for rule in config_section:
+		ruleNum = ruleNum + 1
+		name = rule["name"] if "name" in rule else "Rule " + str(ruleNum)
+		printverbose("\n  - name: " + name)
+
+		if ("match" in rule):
+			match = []
+			printverbose("    match:")
+			for k in ["application", "name", "class_group", "class_instance", "icon"]:
+				if k in rule["match"]:
+					match.append((k, rule["match"][k]))
+					printverbose("      " + k + ": " + rule["match"][k])
+				else:
+					match.append((k, None))
+		else:
+			match = None
+		command = rule["command"] if "command" in rule else None
+		printverbose("    command: " + str(command))
+		cont = rule["continue"] if "continue" in rule else False
+		printverbose("    continue: " + str(cont))
+		skippable = rule["skippable"] if "skippable" in rule else True
+		printverbose("    skippable: " + str(skippable))
+
+		rules.append({"name":name, "match":match, "command":command, "continue":cont, "skippable":skippable})
+	return rules
 
 
 if __name__ == "__main__":

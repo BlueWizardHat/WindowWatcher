@@ -1,4 +1,9 @@
----
+
+#
+# Rules for window changed
+#
+
+window-changed:
   # All config elements present
   - name: All elements present
     match:
@@ -28,3 +33,12 @@
   # Always match
   - name: Default
     command: "g815-led -a a4a4a4"
+
+
+#
+# Optional section for rules for window opened
+#
+
+# window-opened:
+
+#   - name: Default
